@@ -11,14 +11,13 @@ import { ADX, cRSI, EMA, Pivot, PSAR, SuperTrend } from '@debut/indicators'
 import coinz from './../../coinz'
 
 /*
- __  _   ____  ____   ___    _        ___  ____    ___   ______ 
-|  |/ ] /    ||    \ |   \  | |      /  _]|    \  /   \ |      |
-|  ' / |  o  ||  _  ||    \ | |     /  [_ |  o  )|     ||      |
-|    \ |     ||  |  ||  D  || |___ |    _]|     ||  O  ||_|  |_|
-|     ||  _  ||  |  ||     ||     ||   [_ |  O  ||     |  |  |  
-|  .  ||  |  ||  |  ||     ||     ||     ||     ||     |  |  |  
-|__|\_||__|__||__|__||_____||_____||_____||_____| \___/   |__|  
-                                                                ~ambuscade
+    __ __                ____     __          __     ___ 
+   / // _____ ____  ____/ / /__  / /_  ____  / /_   |__ \
+  / ,< / __  / __ \/ __  / / _ \/ __ \/ __ \/ __/   __/ /
+ / /| / /_/ / / / / /_/ / /  __/ /_/ / /_/ / /_    / __/ 
+/_/ |_\__,_/_/ /_/\__,_/_/\___/_.___/\____/\__/   /____/ 
+THE SNIPER
+                                                      ~ambuscade
 */
 
 class CoinProcess {
@@ -41,6 +40,7 @@ class CoinProcess {
     this.state = 'watching' // watching, targetbuy, buying, intrade, selling
     this.shortState = 'watching' // watching, targetbuy, buying, intrade, selling
     this.snapshots = []
+    this.histories1min = []
     this.histories = []
     this.histories15min = []
     this.histories1hour = []
@@ -114,7 +114,6 @@ class CoinProcess {
     // Import coinz logic
     if (tripleXers.includes(this.symbol)) {
       this.coin = coinz[this.symbol]
-      console.log(coinz[this.symbol])
       this.stopLoss = this.coin?.stopLoss || this.config.stopLoss
     }
 
@@ -1190,8 +1189,31 @@ class CoinProcess {
   // Load historical 30 minute candles
   async getHistory() {
     try {
-      console.log(`Loading History: ${this.symbol}...`)
+      // console.log(`Loading History: ${this.symbol}...`)
       const coin = this.symbol
+
+      // 1 minute history
+      const history1min = await this.API.rest.Market.Histories.getMarketCandles(coin, '1min')
+      let output1min = history1min.data
+      // console.log(output1min)
+
+      if (history1min.data.length > 0) {
+        let endAt = Number(history1min.data[history1min.data?.length - 1][0]) || null
+        const hours = 24
+        for (let i = 0; i < hours; i++) {
+          let startAt = endAt - (60 * 60)
+          const history2 = await this.API.rest.Market.Histories.getMarketCandles(coin, '1min', { startAt: startAt, endAt: endAt })
+          const result = history2
+          if (!result.data || result.data?.length === 0) {
+            break
+          } else {
+            endAt = Number(result.data[result.data.length - 1][0])
+            output1min = output1min.concat(result.data)
+          }
+        }
+      }
+      this.histories1min = this.formatHistory(output1min)
+      // this.histories.shift()
       
       // 30 Minute history
       const history = await this.API.rest.Market.Histories.getMarketCandles(coin, '30min')
@@ -1285,7 +1307,7 @@ class CoinProcess {
       }
 
       this.historyIsLoaded = true
-      console.log(`History loaded: ${this.symbol}`)
+      // console.log(`History loaded: ${this.symbol}`)
       
       // Save history for testing
       // const mapped = this.histories.map(obj => {
@@ -1425,6 +1447,7 @@ class CoinProcess {
     if (arr.length === 7 ) {
       const output = {
         timeStamp: arr[0],
+        timeStampFormatted: formatDate(arr[0] * 1000),
         open: Number(arr[1]),
         close: Number(arr[2]),
         high: Number(arr[3]),
@@ -1437,6 +1460,7 @@ class CoinProcess {
     } else {
       const blank = {
         timeStamp: null,
+        timeStampFormatted: null,
         open: null,
         close: null,
         high: null,
@@ -1713,6 +1737,10 @@ class CoinProcess {
   // GETTERS
   get getSnapshots() {
     return this.snapshots
+  }
+
+  get getHistories1min() {
+    return this.histories1min
   }
 
   get getHistories() {
