@@ -26,7 +26,7 @@ const datafeed2 = new API.websocket.Datafeed()
 datafeed.connectSocket()
 datafeed2.connectSocket()
 
-const allowedOrigins = ['http://localhost:5173']
+const allowedOrigins = ['http://localhost:5173', 'https://kandlebot2.netlify.app/', 'https://kandlebot.com/']
 
 var corsOptions = {
   origin: function (origin, callback) {
