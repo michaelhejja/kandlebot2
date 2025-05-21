@@ -32,7 +32,9 @@ class KoinProcess2 {
   }
 
   publishLastKandle() {
-    this.timelines['1min'].publishLastKandle()
+    for (const timeline in this.timelines) {
+      this.timelines[timeline].publishLastKandle()
+    }
   }
 
   // GETTERS
