@@ -98,7 +98,10 @@ class KoinTimeline {
       this.history.unshift(formatted)
       this.updateIndicators()
       this.detectEvents()
-      this.publishMessage('minuteMessage', `${this.history[0].timeStampFormatted} | ${this.history[0].close} | CRSI: ${this.history[0].CRSI} | MFI: ${this.history[0].MFI}`)
+
+      if (this.timeFrame === '1min') {
+        this.publishMessage('minuteMessage', `${this.history[0].timeStampFormatted} | ${this.history[0].close} | CRSI: ${this.history[0].CRSI} | MFI: ${this.history[0].MFI}`, { isAlert: false })
+      }
       
     } else {
       this.retryGetNextTick()
@@ -167,7 +170,7 @@ class KoinTimeline {
     currentCandle.TD_MAGNITUDE = TD.magnitude
 
     // Update stats to frontend clients
-    this.publishMessage('statMessage', this.history[0], { koin: this.symbol, timeFrame: this.timeFrame })
+    this.publishMessage('statMessage', this.history[0], { koin: this.symbol, timeFrame: this.timeFrame, isAlert: false })
   }
 
   // Run indicators on loaded candles so that we are up to date
@@ -296,7 +299,7 @@ class KoinTimeline {
   }
 
   publishLastKandle() {
-    this.publishMessage('statMessage', this.history[0], { koin: this.symbol, timeFrame: this.timeFrame })
+    this.publishMessage('statMessage', this.history[0], { koin: this.symbol, timeFrame: this.timeFrame, isAlert: false })
   }
 
   // GETTERS
