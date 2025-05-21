@@ -121,10 +121,10 @@ class KoinTimeline {
     
     if (this.timeFrame !== '1min') {
       if (prevCandle.mfiTrend < 0 && currentCandle.mfiTrend > 0) {
-        this.publishMessage('minuteMessage', `${this.timeFrame} MONEYFLOW TREND FLIPPED POSITIVE! | MFTREND: ${mfiTrendScore}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
+        this.publishMessage('minuteMessage', `${this.timeFrame} MONEYFLOW TREND FLIPPED POSITIVE! | MFTREND: ${currentCandle.mfiTrend}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
       }
       else if (prevCandle.mfiTrend > 0 && currentCandle.mfiTrend < 0) {
-        this.publishMessage('minuteMessage', `${this.timeFrame} MONEYFLOW TREND FLIPPED NEGATIVE! | MFTREND: ${mfiTrendScore}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
+        this.publishMessage('minuteMessage', `${this.timeFrame} MONEYFLOW TREND FLIPPED NEGATIVE! | MFTREND: ${currentCandle.mfiTrend}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
       }
     }
 
