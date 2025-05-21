@@ -84,6 +84,9 @@ const main = async () => {
     const getTimestampRl = await API.rest.Others.getTimestamp()
     console.log(formatDate(getTimestampRl.data))
 
+    const nearestMinute = Math.floor((getTimestampRl.data / 1000) / 60) * 60
+    console.log(nearestMinute)
+
     const symbols = await API.rest.Market.Symbols.getSymbolsList()
     const symbolsUSDT = symbols.data.filter(obj => {
       const split = obj.symbol.split('-')
@@ -95,7 +98,7 @@ const main = async () => {
     symbolsUSDT.forEach(obj => {
 
       if (obj.symbol === 'ETH-USDT') {
-        KoinProcesses2[obj.symbol] = new KoinProcess2(i, obj.symbol, API, expressWs)
+        KoinProcesses2[obj.symbol] = new KoinProcess2(i, obj.symbol, API, expressWs, nearestMinute)
       }
     })
 

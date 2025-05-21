@@ -12,14 +12,16 @@ import KoinTimeline from "./KoinTimeline"
 
 class KoinProcess2 {
 
-  constructor(ID, symbol, API, expressWs) {
+  constructor(ID, symbol, API, expressWs, timeStampStart) {
     this.ID = ID
     this.symbol = symbol
     this.API = API
     this.WS = expressWs
     this.timelines = {}
 
-    this.timelines['1min'] = new KoinTimeline(this.symbol, this.API, this.WS, '1min', 1000)
+    this.timelines['1min'] = new KoinTimeline(this.symbol, this.API, this.WS, '1min', 1000, timeStampStart)
+    this.timelines['5min'] = new KoinTimeline(this.symbol, this.API, this.WS, '5min', 400, timeStampStart)
+    this.timelines['15min'] = new KoinTimeline(this.symbol, this.API, this.WS, '15min', 400, timeStampStart)
   }
 
   async getNextTick() {

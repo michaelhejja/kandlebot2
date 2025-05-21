@@ -19,11 +19,12 @@ import trendScore from '../../utils/trendScore'
 
 class KoinTimeline {
 
-  constructor(symbol, API, WS, timeFrame, defaultCandleLoad = 400) {
+  constructor(symbol, API, WS, timeFrame, defaultCandleLoad = 400, timeStampStart) {
     this.symbol = symbol
     this.API = API
     this.WS = WS
     this.timeFrame = timeFrame
+    this.currentTimeStamp = timeStampStart
     this.history = []
     this.EMA20 = new EMA(20)
     this.EMA50 = new EMA(50)
@@ -74,15 +75,26 @@ class KoinTimeline {
     }
   }
 
-  async getNextTick() {
-    console.log(`Next tick for ${this.symbol} | ${this.timeFrame}`)
+  async getNextTick(retry = false) {
+    // console.log(`Next tick for ${this.symbol} | ${this.timeFrame}`)
+    if (!retry) {
+      this.currentTimeStamp += 60
+    }
 
     const lastTimeStamp = Number(this.history[0].timeStamp)
     const nextTimeStamp = lastTimeStamp + timeFrameToSeconds[this.timeFrame]
-    const newKandle = await this.API.rest.Market.Histories.getMarketCandles(this.symbol, this.timeFrame)
 
-    if (newKandle.data[0][0] == nextTimeStamp) {
-      const formatted = formatSingleCandle(newKandle.data[0])
+    // console.log(`${this.timeFrame} | ${this.currentTimeStamp} | ${nextTimeStamp}`)
+    if (this.currentTimeStamp != nextTimeStamp) {
+      return
+    }
+    console.log(`Getting ${this.timeFrame} Kandles`)
+
+    const newKandles = await this.API.rest.Market.Histories.getMarketCandles(this.symbol, this.timeFrame)
+    const newKandle = newKandles.data.find(obj => obj[0] == nextTimeStamp)
+
+    if (newKandle) {
+      const formatted = formatSingleCandle(newKandle)
       this.history.unshift(formatted)
       this.updateIndicators()
       this.detectEvents()
@@ -96,7 +108,7 @@ class KoinTimeline {
   retryGetNextTick() {
     console.log(`Candle not found. Retrying...`)
     setTimeout(() => {
-      this.getNextTick()
+      this.getNextTick(true)
     }, 1000)
   }
 
@@ -123,13 +135,13 @@ class KoinTimeline {
     // Oversold / Undersold
     if (currentCandle.EMA_DIR === -2 && currentCandle.CRSI < 20 && currentCandle.MFI < 20) {
       console.log(`${currentCandle.timeStampFormatted} OVERSOLD | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
-      this.publishMessage('minuteMessage', `OVERSOLD! | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`, 'alert')
+      this.publishMessage('minuteMessage', `OVERSOLD! | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
       this.logEvent(currentCandle.timeStamp, 'OVERSOLD', `${this.symbol} OVERSOLD! ${currentCandle.timeStampFormatted} | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
     }
   
     if (currentCandle.EMA_DIR === 2 && currentCandle.CRSI > 80 && currentCandle.MFI > 80) {
       console.log(`${currentCandle.timeStampFormatted} OVERBOUGHT | CRSI:${currentCandle.CRSI} | MFI:${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
-      this.publishMessage('minuteMessage', `OVERBOUGHT! | CRSI:${currentCandle.CRSI} | MFI:${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`, 'alert')
+      this.publishMessage('minuteMessage', `OVERBOUGHT! | CRSI:${currentCandle.CRSI} | MFI:${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
       this.logEvent(currentCandle.timeStamp, 'OVERBOUGHT', `${this.symbol} OVERBOUGHT! ${currentCandle.timeStampFormatted} | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
     }
 
@@ -138,7 +150,7 @@ class KoinTimeline {
 
     if (TD.trend > 90 || TD.magnitude > 90) {
       console.log('minuteMessage', `DIVERGENCE! ${currentCandle.timeStampFormatted} | PRICE: ${priceTrendScore} | MFI: ${mfiTrendScore} | TD: ${TD.trend} | MD: ${TD.magnitude}`)
-      this.publishMessage('minuteMessage', `DIVERGENCE! ${currentCandle.timeStampFormatted} | PRICE: ${priceTrendScore.toFixed(2)} | MFI: ${mfiTrendScore.toFixed(2)} | TD: ${TD.trend} | MD: ${TD.magnitude}`, 'alert')
+      this.publishMessage('minuteMessage', `DIVERGENCE! ${currentCandle.timeStampFormatted} | PRICE: ${priceTrendScore.toFixed(2)} | MFI: ${mfiTrendScore.toFixed(2)} | TD: ${TD.trend} | MD: ${TD.magnitude}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
       this.logEvent(currentCandle.timeStamp, 'DIVERGENCE', `${this.symbol} DIVERGENCE! ${currentCandle.timeStampFormatted} | PRICE TREND: ${priceTrendScore.toFixed(2)} | MFI TREND: ${mfiTrendScore.toFixed(2)} | TD: ${TD.trend} | MD: ${TD.magnitude}`)
     }
 
@@ -146,7 +158,7 @@ class KoinTimeline {
     currentCandle.TD_MAGNITUDE = TD.magnitude
 
     // Update stats to frontend clients
-    this.publishMessage('statMessage', this.history[0])
+    this.publishMessage('statMessage', this.history[0], { koin: this.symbol, timeFrame: this.timeFrame })
   }
 
   // Run indicators on loaded candles so that we are up to date
@@ -191,6 +203,24 @@ class KoinTimeline {
       if (TD) {
         this.history[i].TD_TREND = TD.trend
         this.history[i].TD_MAGNITUDE = TD.magnitude
+      }
+
+      if (i < this.history.length - 12) {
+        // Trend Strengths
+        const lastTwelwe = this.history.slice(i, 12)
+        const closes = lastTwelwe.map(obj => {
+          return obj.close
+        }).reverse()
+
+        const mfis = lastTwelwe.map(obj => {
+          return obj.MFI
+        }).reverse()
+    
+        const priceTrendScore = trendScore(closes)
+        const mfiTrendScore = trendScore(mfis)
+    
+        this.history[i].priceTrend = priceTrendScore
+        this.history[i].mfiTrend = mfiTrendScore
       }
 
       i--
@@ -257,7 +287,7 @@ class KoinTimeline {
   }
 
   publishLastKandle() {
-    this.publishMessage('statMessage', this.history[0])
+    this.publishMessage('statMessage', this.history[0], { koin: this.symbol, timeFrame: this.timeFrame })
   }
 
   // GETTERS
