@@ -199,8 +199,10 @@ app.ws('/', function(ws, req) {
     message: 'You are connected to Kandlebot 2. Good luck.'
   }
   ws.send(JSON.stringify(greet))
-
-  KoinProcesses2[koin].publishLastKandle()
+  
+  for (const koin in KoinProcesses2) {
+    KoinProcesses2[koin].publishLastKandle()
+  }
 
   ws.on('message', function(msg) {
     console.log(`WS MESSAGE: ${msg}`)
