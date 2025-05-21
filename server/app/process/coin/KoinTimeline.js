@@ -115,6 +115,15 @@ class KoinTimeline {
   detectEvents() {
     const currentCandle = this.history[0]
     const prevCandle = this.history[1]
+    
+    if (this.timeFrame !== '1min') {
+      if (prevCandle.mfiTrend < 0 && currentCandle.mfiTrend > 0) {
+        this.publishMessage('minuteMessage', `${this.timeFrame} MONEYFLOW TREND FLIPPED POSITIVE! | MFTREND: ${mfiTrendScore}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
+      }
+      else if (prevCandle.mfiTrend > 0 && currentCandle.mfiTrend < 0) {
+        this.publishMessage('minuteMessage', `${this.timeFrame} MONEYFLOW TREND FLIPPED NEGATIVE! | MFTREND: ${mfiTrendScore}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
+      }
+    }
 
     // Trend Strengths
     const lastTwelwe = this.history.slice(0, 12)
