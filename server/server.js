@@ -200,6 +200,8 @@ app.ws('/', function(ws, req) {
   }
   ws.send(JSON.stringify(greet))
 
+  KoinProcesses2[koin].publishLastKandle()
+
   ws.on('message', function(msg) {
     console.log(`WS MESSAGE: ${msg}`)
   })

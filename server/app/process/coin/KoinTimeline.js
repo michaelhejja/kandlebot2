@@ -256,6 +256,10 @@ class KoinTimeline {
     newEvent.save()
   }
 
+  publishLastKandle() {
+    this.publishMessage('statMessage', this.history[0])
+  }
+
   // GETTERS
   get getHistory() {
     return this.history

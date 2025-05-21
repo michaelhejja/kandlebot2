@@ -9,6 +9,6 @@ export default function formatDate(date) {
       day: 'numeric'
     }
   )
-  const time = theDate.toLocaleTimeString('en-US')
+  const time = theDate.toLocaleTimeString('en-US', { timeZone: 'America/New_York' })
   return `${day} ${time}`
 }

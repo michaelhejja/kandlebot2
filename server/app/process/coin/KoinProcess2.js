@@ -28,6 +28,10 @@ class KoinProcess2 {
     }
   }
 
+  publishLastKandle() {
+    this.timelines['1min'].publishLastKandle()
+  }
+
   // GETTERS
   get getTimelines() {
     return this.timelines
