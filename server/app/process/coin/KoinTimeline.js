@@ -97,9 +97,9 @@ class KoinTimeline {
       const formatted = formatSingleCandle(newKandle)
       this.history.unshift(formatted)
       this.updateIndicators()
-      this.detectEvents()
 
       if (this.timeFrame === '1min') {
+        this.detectEvents()
         this.publishMessage('minuteMessage', `${this.history[0].timeStampFormatted} | ${this.history[0].close} | CRSI: ${this.history[0].CRSI} | MFI: ${this.history[0].MFI}`, { isAlert: false })
       }
       
