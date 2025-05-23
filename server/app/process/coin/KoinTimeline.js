@@ -97,9 +97,9 @@ class KoinTimeline {
       const formatted = formatSingleCandle(newKandle)
       this.history.unshift(formatted)
       this.updateIndicators()
+      this.detectEvents()
 
       if (this.timeFrame === '1min') {
-        this.detectEvents()
         this.publishMessage('minuteMessage', `${this.history[0].timeStampFormatted} | ${this.history[0].close} | CRSI: ${this.history[0].CRSI} | MFI: ${this.history[0].MFI}`, { isAlert: false })
       }
       
@@ -136,35 +136,39 @@ class KoinTimeline {
     this.history[0].mfiTrend = mfiTrendScore
     
     // Moneyflow flip alert
-    if (this.timeFrame !== '1min') {
-      if (prevCandle.mfiTrend < 0 && currentCandle.mfiTrend > 0) {
-        this.publishMessage('minuteMessage', `${this.timeFrame} MONEYFLOW TREND FLIPPED POSITIVE! | MFTREND: ${currentCandle.mfiTrend}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
-      }
-      else if (prevCandle.mfiTrend > 0 && currentCandle.mfiTrend < 0) {
-        this.publishMessage('minuteMessage', `${this.timeFrame} MONEYFLOW TREND FLIPPED NEGATIVE! | MFTREND: ${currentCandle.mfiTrend}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
-      }
-    }
+    // if (this.timeFrame !== '1min') {
+    //   if (prevCandle.mfiTrend < 0 && currentCandle.mfiTrend > 0) {
+    //     this.publishMessage('minuteMessage', `${this.timeFrame} MONEYFLOW TREND FLIPPED POSITIVE! | MFTREND: ${currentCandle.mfiTrend}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
+    //   }
+    //   else if (prevCandle.mfiTrend > 0 && currentCandle.mfiTrend < 0) {
+    //     this.publishMessage('minuteMessage', `${this.timeFrame} MONEYFLOW TREND FLIPPED NEGATIVE! | MFTREND: ${currentCandle.mfiTrend}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
+    //   }
+    // }
 
-    // Oversold / Undersold
-    if (currentCandle.EMA_DIR === -2 && currentCandle.CRSI < 20 && currentCandle.MFI < 20) {
-      console.log(`${currentCandle.timeStampFormatted} OVERSOLD | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
-      this.publishMessage('minuteMessage', `OVERSOLD! | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
-      this.logEvent(currentCandle.timeStamp, 'OVERSOLD', `${this.symbol} OVERSOLD! ${currentCandle.timeStampFormatted} | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
-    }
+    if (this.timeFrame === '1min') {
+
+      // Oversold / Undersold
+      if (currentCandle.EMA_DIR === -2 && currentCandle.CRSI < 20 && currentCandle.MFI < 20) {
+        console.log(`${currentCandle.timeStampFormatted} OVERSOLD | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
+        this.publishMessage('minuteMessage', `OVERSOLD! | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
+        this.logEvent(currentCandle.timeStamp, 'OVERSOLD', `${this.symbol} OVERSOLD! ${currentCandle.timeStampFormatted} | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
+      }
   
-    if (currentCandle.EMA_DIR === 2 && currentCandle.CRSI > 80 && currentCandle.MFI > 80) {
-      console.log(`${currentCandle.timeStampFormatted} OVERBOUGHT | CRSI:${currentCandle.CRSI} | MFI:${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
-      this.publishMessage('minuteMessage', `OVERBOUGHT! | CRSI:${currentCandle.CRSI} | MFI:${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
-      this.logEvent(currentCandle.timeStamp, 'OVERBOUGHT', `${this.symbol} OVERBOUGHT! ${currentCandle.timeStampFormatted} | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
-    }
+      if (currentCandle.EMA_DIR === 2 && currentCandle.CRSI > 80 && currentCandle.MFI > 80) {
+        console.log(`${currentCandle.timeStampFormatted} OVERBOUGHT | CRSI:${currentCandle.CRSI} | MFI:${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
+        this.publishMessage('minuteMessage', `OVERBOUGHT! | CRSI:${currentCandle.CRSI} | MFI:${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
+        this.logEvent(currentCandle.timeStamp, 'OVERBOUGHT', `${this.symbol} OVERBOUGHT! ${currentCandle.timeStampFormatted} | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
+      }
 
-    // Divergence
-    const TD = this.TD.nextValue(this.history[0].close, this.history[0].MFI)
+      // Divergence
+      const TD = this.TD.nextValue(this.history[0].close, this.history[0].MFI)
 
-    if (TD.trend > 90 || TD.magnitude > 90) {
-      console.log('minuteMessage', `DIVERGENCE! ${currentCandle.timeStampFormatted} | PRICE: ${priceTrendScore} | MFI: ${mfiTrendScore} | TD: ${TD.trend} | MD: ${TD.magnitude}`)
-      this.publishMessage('minuteMessage', `DIVERGENCE! ${currentCandle.timeStampFormatted} | PRICE: ${priceTrendScore.toFixed(2)} | MFI: ${mfiTrendScore.toFixed(2)} | TD: ${TD.trend} | MD: ${TD.magnitude}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
-      this.logEvent(currentCandle.timeStamp, 'DIVERGENCE', `${this.symbol} DIVERGENCE! ${currentCandle.timeStampFormatted} | PRICE TREND: ${priceTrendScore.toFixed(2)} | MFI TREND: ${mfiTrendScore.toFixed(2)} | TD: ${TD.trend} | MD: ${TD.magnitude}`)
+      if (TD.trend > 90 || TD.magnitude > 90) {
+        console.log('minuteMessage', `DIVERGENCE! ${currentCandle.timeStampFormatted} | PRICE: ${priceTrendScore} | MFI: ${mfiTrendScore} | TD: ${TD.trend} | MD: ${TD.magnitude}`)
+        this.publishMessage('minuteMessage', `DIVERGENCE! ${currentCandle.timeStampFormatted} | PRICE: ${priceTrendScore.toFixed(2)} | MFI: ${mfiTrendScore.toFixed(2)} | TD: ${TD.trend} | MD: ${TD.magnitude}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
+        this.logEvent(currentCandle.timeStamp, 'DIVERGENCE', `${this.symbol} DIVERGENCE! ${currentCandle.timeStampFormatted} | PRICE TREND: ${priceTrendScore.toFixed(2)} | MFI TREND: ${mfiTrendScore.toFixed(2)} | TD: ${TD.trend} | MD: ${TD.magnitude}`)
+      }
+
     }
 
     currentCandle.TD_TREND = TD.trend
