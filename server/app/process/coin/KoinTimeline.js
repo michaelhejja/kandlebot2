@@ -169,10 +169,9 @@ class KoinTimeline {
         this.logEvent(currentCandle.timeStamp, 'DIVERGENCE', `${this.symbol} DIVERGENCE! ${currentCandle.timeStampFormatted} | PRICE TREND: ${priceTrendScore.toFixed(2)} | MFI TREND: ${mfiTrendScore.toFixed(2)} | TD: ${TD.trend} | MD: ${TD.magnitude}`)
       }
 
+      currentCandle.TD_TREND = TD.trend
+      currentCandle.TD_MAGNITUDE = TD.magnitude
     }
-
-    currentCandle.TD_TREND = TD.trend
-    currentCandle.TD_MAGNITUDE = TD.magnitude
 
     // Update stats to frontend clients
     this.publishMessage('statMessage', this.history[0], { koin: this.symbol, timeFrame: this.timeFrame, isAlert: false })
