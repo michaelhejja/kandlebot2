@@ -178,7 +178,7 @@ app.get('/api/events', async (req, res) => {
       {
         $facet: {
           metadata: [{ $count: 'totalCount' }],
-          data: [{ $skip: (page - 1) * pageSize }, { $sort: { createdAt: -1 } }, { $limit: pageSize }],
+          data: [{ $sort: { createdAt: -1 } }, { $skip: (page - 1) * pageSize }, { $limit: pageSize }],
         },
       },
     ])
