@@ -136,14 +136,14 @@ class KoinTimeline {
     this.history[0].mfiTrend = mfiTrendScore
     
     // Moneyflow flip alert
-    // if (this.timeFrame !== '1min') {
-    //   if (prevCandle.mfiTrend < 0 && currentCandle.mfiTrend > 0) {
-    //     this.publishMessage('minuteMessage', `${this.timeFrame} MONEYFLOW TREND FLIPPED POSITIVE! | MFTREND: ${currentCandle.mfiTrend}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
-    //   }
-    //   else if (prevCandle.mfiTrend > 0 && currentCandle.mfiTrend < 0) {
-    //     this.publishMessage('minuteMessage', `${this.timeFrame} MONEYFLOW TREND FLIPPED NEGATIVE! | MFTREND: ${currentCandle.mfiTrend}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
-    //   }
-    // }
+    if (this.timeFrame !== '1min') {
+      if (prevCandle.mfiTrend < 0 && currentCandle.mfiTrend > 0) {
+        this.publishMessage('minuteMessage', `${this.timeFrame} MONEYFLOW TREND FLIPPED POSITIVE! | MFTREND: ${currentCandle.mfiTrend}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
+      }
+      else if (prevCandle.mfiTrend > 0 && currentCandle.mfiTrend < 0) {
+        this.publishMessage('minuteMessage', `${this.timeFrame} MONEYFLOW TREND FLIPPED NEGATIVE! | MFTREND: ${currentCandle.mfiTrend}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
+      }
+    }
 
     if (this.timeFrame === '1min') {
 

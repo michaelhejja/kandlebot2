@@ -20,9 +20,9 @@ class KoinProcess2 {
     this.timelines = {}
 
     this.timelines['1min'] = new KoinTimeline(this.symbol, this.API, this.WS, '1min', 1000, timeStampStart)
-    this.timelines['5min'] = new KoinTimeline(this.symbol, this.API, this.WS, '5min', 400, timeStampStart)
-    this.timelines['15min'] = new KoinTimeline(this.symbol, this.API, this.WS, '15min', 400, timeStampStart)
-    this.timelines['30min'] = new KoinTimeline(this.symbol, this.API, this.WS, '30min', 400, timeStampStart)
+    this.timelines['1hour'] = new KoinTimeline(this.symbol, this.API, this.WS, '1hour', 400, timeStampStart)
+    this.timelines['4hour'] = new KoinTimeline(this.symbol, this.API, this.WS, '4hour', 400, timeStampStart)
+    this.timelines['12hour'] = new KoinTimeline(this.symbol, this.API, this.WS, '12hour', 400, timeStampStart)
   }
 
   async getNextTick() {
