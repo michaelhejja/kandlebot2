@@ -16,6 +16,7 @@ import emaDirection from '../../utils/emaDirection'
 import { ADX, cRSI, EMA, MFI } from '@debut/indicators'
 import TrendDivergence from '../../utils/TrendDivergence'
 import trendScore from '../../utils/trendScore'
+import percentChange from '../../utils/percentChange'
 
 class KoinTimeline {
 
@@ -150,13 +151,15 @@ class KoinTimeline {
       // Oversold / Undersold
       if (currentCandle.EMA_DIR === -2 && currentCandle.CRSI < 20 && currentCandle.MFI < 20) {
         console.log(`${currentCandle.timeStampFormatted} OVERSOLD | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
-        this.publishMessage('minuteMessage', `OVERSOLD! | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
+        const percent = Math.abs(percentChange(currentCandle.close, currentCandle.EMA200))
+        this.publishMessage('minuteMessage', `OVERSOLD! | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true, isTarget: percent >= 1 })
         this.logEvent(currentCandle.timeStamp, 'OVERSOLD', `${this.symbol} OVERSOLD! ${currentCandle.timeStampFormatted} | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
       }
   
       if (currentCandle.EMA_DIR === 2 && currentCandle.CRSI > 80 && currentCandle.MFI > 80) {
         console.log(`${currentCandle.timeStampFormatted} OVERBOUGHT | CRSI:${currentCandle.CRSI} | MFI:${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
-        this.publishMessage('minuteMessage', `OVERBOUGHT! | CRSI:${currentCandle.CRSI} | MFI:${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true })
+        const percent = Math.abs(percentChange(currentCandle.close, currentCandle.EMA200))
+        this.publishMessage('minuteMessage', `OVERBOUGHT! | CRSI:${currentCandle.CRSI} | MFI:${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`, { koin: this.symbol, timeFrame: this.timeFrame, isAlert: true, isTarget: percent >= 1 })
         this.logEvent(currentCandle.timeStamp, 'OVERBOUGHT', `${this.symbol} OVERBOUGHT! ${currentCandle.timeStampFormatted} | CRSI: ${currentCandle.CRSI} | MFI: ${currentCandle.MFI} | MFTREND: ${mfiTrendScore}`)
       }
 
